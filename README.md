@@ -21,6 +21,38 @@ An autonomous agent that scrapes AI and Tech news and trending GitHub repos ever
 
 ---
 
+## Architecture Flow
+
+The agent runs two concurrent loops: an **Hourly Scrape & Draft Pipeline** and a **Peak-Hours Posting Pipeline**. The two are decoupled via a SQLite Database Queue (`queue.db`).
+
+```mermaid
+graph TD
+    subgraph "Hourly Pipeline (Scraper & Drafter)"
+    S[Scheduler] -->|Every 1 hour| P(Pipeline)
+    P --> |ThreadPool| GH[GitHub Scraper]
+    P --> |ThreadPool| HN[HackerNews Scraper]
+    P --> |ThreadPool| RSS[RSS Scraper]
+    GH --> Dedup[Deduplicator]
+    HN --> Dedup
+    RSS --> Dedup
+    Dedup -->|Filter known URLs| Rank[Ranking & Scoring]
+    Rank --> LLM{LLM Drafter}
+    LLM --> |Draft Tweets| QueueDB[(SQLite queue.db)]
+    end
+
+    subgraph "Human-In-The-Loop (HITL)"
+    QueueDB --> Dash[Web Dashboard :8080]
+    Dash -->|Approve/Reject| QueueDB
+    end
+
+    subgraph "Poster Pipeline"
+    Cron[Poster Loop] -->|Trigger at Peak Hours| QueueDB
+    QueueDB -->|Fetch Approved Drafts| TwitAPI[Twitter OAuth 1.0a]
+    end
+```
+
+---
+
 ## Quick Start
 
 ### 1. Install dependencies
