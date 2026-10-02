@@ -1,155 +1,242 @@
-# X/Twitter AI & Tech Autonomous Agent
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/AI_Agent-Automation-6E56CF?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/LLM-OpenAI%20%7C%20Gemini%20%7C%20NVIDIA-111827?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/HITL-Approval-FFB000?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" />
+</p>
 
-An autonomous agent that scrapes AI and Tech news and trending GitHub repos every hour, drafts engaging X/Twitter posts using an LLM, and publishes them automatically after human-in-the-loop (HITL) approval.
+<h1 align="center">🤖 X_Agent</h1>
 
----
+<p align="center">
+  <strong>An AI-powered content automation agent for discovering, researching, drafting, reviewing, and publishing AI/tech content.</strong>
+</p>
 
-## Features
-
-- **Multi-source scraping** every hour:
-  - GitHub Trending (AI/ML repos, Python, Jupyter Notebook)
-  - Hacker News top AI/ML stories (via Algolia Search API)
-  - RSS feeds: ArXiv AI & ML, MIT Tech Review, TechCrunch AI, VentureBeat AI, DeepLearning.AI Blog
-- **Smart deduplication** — remembers seen URLs & similar titles for 48 hours
-- **SQLite queue & HITL dashboard** — review and approve drafts in a local web interface (`queue.db` on port 8080 by default) before posting
-- **Safety filter** — uses LLMs to classify each draft for safety before HITL approval
-- **Scheduled posting** — posts approved drafts at configured peak hours
-- **LLM-drafted tweets** — configurable to use OpenAI, Google Gemini, NVIDIA (Llama 3), or a hybrid mode (researcher + writer)
-- **X/Twitter API v2** posting via OAuth 1.0a
-- **Structured logs** per run in `logs/`
-- **Graceful shutdown** on Ctrl-C
+<p align="center">
+  Multi-source research → deduplication → LLM drafting → safety checks → human approval → scheduled publishing.
+</p>
 
 ---
 
-## Architecture Flow
+## 🎯 What Is X_Agent?
 
-The agent runs two concurrent loops: an **Hourly Scrape & Draft Pipeline** and a **Peak-Hours Posting Pipeline**. The two are decoupled via a SQLite Database Queue (`queue.db`).
+X_Agent is an autonomous content pipeline designed around **human-in-the-loop AI automation**.
+
+Instead of blindly generating and posting content, it separates research, drafting, review, and publishing into explicit stages.
+
+### Core pipeline
+
+```
+Sources
+  ↓
+Scrapers
+  ↓
+Deduplication
+  ↓
+Ranking / filtering
+  ↓
+LLM research + drafting
+  ↓
+Safety classification
+  ↓
+SQLite queue
+  ↓
+Human approval
+  ↓
+Scheduled publishing
+```
+
+## ✨ Key Features
+
+- 🔎 **Multi-source research**
+  - GitHub Trending
+  - Hacker News
+  - AI/ML RSS feeds
+- 🧠 **LLM-powered drafting**
+  - OpenAI
+  - Google Gemini
+  - NVIDIA
+  - Hybrid researcher + writer mode
+- ♻️ **Smart deduplication** using URLs and similar titles
+- 👤 **Human-in-the-loop dashboard** before publishing
+- 🛡️ **Safety classification** before approval
+- ⏰ **Scheduled publishing** during configured windows
+- 🗃️ **SQLite queue** for persistent draft state
+- 📋 **Structured JSONL logs** for runs
+- 🧩 Modular scraper, pipeline, model, queue, and poster components
+- 🚦 Safe default: `POST_TO_X=false`
+
+## 🏗️ Architecture
 
 ```mermaid
 graph TD
-    subgraph "Hourly Pipeline (Scraper & Drafter)"
-    S[Scheduler] -->|Every 1 hour| P(Pipeline)
-    P --> |ThreadPool| GH[GitHub Scraper]
-    P --> |ThreadPool| HN[HackerNews Scraper]
-    P --> |ThreadPool| RSS[RSS Scraper]
-    GH --> Dedup[Deduplicator]
-    HN --> Dedup
-    RSS --> Dedup
-    Dedup -->|Filter known URLs| Rank[Ranking & Scoring]
-    Rank --> LLM{LLM Drafter}
-    LLM --> |Draft Tweets| QueueDB[(SQLite queue.db)]
-    end
+    A[Scheduler] --> B[Research Pipeline]
 
-    subgraph "Human-In-The-Loop (HITL)"
-    QueueDB --> Dash[Web Dashboard :8080]
-    Dash -->|Approve/Reject| QueueDB
-    end
+    B --> C[GitHub Trending]
+    B --> D[Hacker News]
+    B --> E[RSS Feeds]
 
-    subgraph "Poster Pipeline"
-    Cron[Poster Loop] -->|Trigger at Peak Hours| QueueDB
-    QueueDB -->|Fetch Approved Drafts| TwitAPI[Twitter OAuth 1.0a]
-    end
+    C --> F[Deduplication]
+    D --> F
+    E --> F
+
+    F --> G[Ranking / Filtering]
+    G --> H[LLM Research + Drafting]
+    H --> I[Safety Check]
+    I --> J[(SQLite Queue)]
+
+    J --> K[HITL Dashboard]
+    K -->|Approve| L[Approved Queue]
+    K -->|Reject| J
+
+    L --> M[Scheduled Poster]
+    M --> N[X API]
 ```
 
----
+## 🧠 Design Principles
 
-## Quick Start
+### 1. Automation with human control
 
-### 1. Install dependencies
+The system does not require automatic publishing. Drafts can remain in the local queue until a human reviews them.
+
+### 2. Provider flexibility
+
+The LLM layer is configurable instead of locking the project to a single model provider.
+
+### 3. Separation of concerns
+
+Scraping, deduplication, drafting, safety checks, queue management, and publishing are independent components.
+
+### 4. Safe-by-default publishing
+
+`POST_TO_X=false` keeps the system in draft/review mode until publishing is explicitly enabled.
+
+## 🛠️ Tech Stack
+
+| Area | Technology |
+|---|---|
+| Language | Python |
+| Scheduling | Python scheduler loop |
+| Research | GitHub, Hacker News, RSS |
+| LLMs | OpenAI, Gemini, NVIDIA |
+| Storage | SQLite |
+| Dashboard | Local web UI |
+| Publishing | X API v2 |
+| Authentication | OAuth 1.0a |
+| Logging | JSONL |
+| CI | GitHub Actions |
+
+## 🚀 Quick Start
+
+### Requirements
+
+- Python 3.12+
+- API credentials for your selected LLM provider
+- X developer credentials only if publishing is enabled
+
+### 1. Clone
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/Prudhviraj101/X_Agent.git
+cd X_Agent
 ```
 
-### 2. Configure
+### 2. Install
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 3. Configure
 
 ```bash
 cp .env.example .env
-# Edit .env with your preferred text editor
 ```
 
-Fill in at minimum one of:
-- `OPENAI_API_KEY` + `MODEL_PROVIDER=openai`
-- `GEMINI_API_KEY` + `MODEL_PROVIDER=gemini`
-- `NVIDIA_API_KEY` + `MODEL_PROVIDER=nvidia`
-- `MODEL_PROVIDER=hybrid` (uses `HYBRID_RESEARCHER_MODEL` and `HYBRID_WRITER_MODEL`)
+Set the model provider and credentials you want to use.
 
-To actually post to X, also fill in:
-- `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_SECRET`
-- Set `POST_TO_X=true`
+For safe local testing, keep:
 
-### 3. Run
+```env
+POST_TO_X=false
+```
+
+### 4. Run
 
 ```bash
 python main.py
 ```
 
-The agent starts the background queue/dashboard, runs an immediate first scrape cycle, then repeats every hour (configurable via `SCRAPE_INTERVAL_HOURS`). The HITL dashboard is available at `http://localhost:8080`.
+The agent starts its research pipeline and local review dashboard.
 
-Stop it any time with **Ctrl-C** — the current run finishes cleanly.
+## ⚙️ Configuration
 
----
+| Variable | Purpose |
+|---|---|
+| `MODEL_PROVIDER` | Select OpenAI, Gemini, NVIDIA, or hybrid |
+| `OPENAI_API_KEY` | OpenAI credentials |
+| `GEMINI_API_KEY` | Gemini credentials |
+| `NVIDIA_API_KEY` | NVIDIA credentials |
+| `X_API_KEY` | X consumer key |
+| `X_API_SECRET` | X consumer secret |
+| `X_ACCESS_TOKEN` | X access token |
+| `X_ACCESS_SECRET` | X access secret |
+| `POST_TO_X` | Enable/disable actual publishing |
+| `SCRAPE_INTERVAL_HOURS` | Research cycle frequency |
+| `MAX_POSTS_PER_RUN` | Maximum posts per cycle |
+| `DEDUP_TTL_HOURS` | Duplicate retention window |
+| `HTTP_TIMEOUT` | Request timeout |
 
-## Configuration Reference
+Never commit `.env` or real API credentials.
 
-| Variable | Default | Description |
-|---|---|---|
-| `MODEL_PROVIDER` | `openai` | `openai`, `gemini`, `nvidia`, or `hybrid` |
-| `OPENAI_API_KEY` | — | Your OpenAI API key |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Model to use for drafting |
-| `GEMINI_API_KEY` | — | Your Google Gemini API key |
-| `GEMINI_MODEL` | `gemini-3.5-flash` | Gemini model name |
-| `NVIDIA_API_KEY` | — | Your NVIDIA API key |
-| `NVIDIA_MODEL` | `meta/llama3-70b-instruct` | NVIDIA model name |
-| `HYBRID_RESEARCHER_MODEL`| `gemini-3.5-flash` | Researcher model for hybrid mode |
-| `HYBRID_WRITER_MODEL` | `gpt-4o-mini` | Writer model for hybrid mode |
-| `X_API_KEY` | — | Twitter consumer key |
-| `X_API_SECRET` | — | Twitter consumer secret |
-| `X_ACCESS_TOKEN` | — | Twitter access token |
-| `X_ACCESS_SECRET` | — | Twitter access token secret |
-| `POST_TO_X` | `false` | `true` to post, `false` to keep in queue |
-| `SCRAPE_INTERVAL_HOURS` | `1` | Run cycle frequency in hours |
-| `MAX_POSTS_PER_RUN` | `3` | Max tweets per cycle |
-| `DEDUP_TTL_HOURS` | `48` | Hours before a URL can be re-used |
-| `HTTP_TIMEOUT` | `15` | Request timeout in seconds |
-| `USER_AGENT` | `XAgentBot/1.0` | HTTP user-agent string |
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
-X agent/
-├── main.py                # Entry point
-├── config.py              # Config loader
-├── scheduler.py           # Hourly scheduler
-├── pipeline.py            # Run orchestrator
-├── deduplicator.py        # URL deduplication store
-├── drafter.py             # LLM tweet generator
-├── poster.py              # X API v2 poster
-├── draft_queue.py         # SQLite queue, Safety filter & HITL Dashboard
+X_Agent/
+├── main.py
+├── config.py
+├── scheduler.py
+├── pipeline.py
+├── deduplicator.py
+├── drafter.py
+├── poster.py
+├── draft_queue.py
 ├── scraper/
-│   ├── github_trending.py # GitHub Trending page
-│   ├── hackernews.py      # HN Algolia Search API
-│   └── rss_feeds.py       # RSS/Atom feeds
-├── logs/                  # Per-run JSONL logs (auto-created)
-├── vendor/                # Vendor dependencies (e.g. scrapling)
-├── .env.example           # Config template
-└── requirements.txt       # Python dependencies
+│   ├── github_trending.py
+│   ├── hackernews.py
+│   └── rss_feeds.py
+├── logs/
+├── vendor/
+├── .env.example
+├── requirements.txt
+└── .github/workflows/
+    └── python.yml
 ```
 
----
+## 🔐 Security Notes
 
-## X/Twitter API Requirements
+- Keep all provider and X credentials in environment variables.
+- Keep publishing disabled while testing the pipeline.
+- Review generated content before enabling automated posting.
+- Treat scraped content as untrusted input.
+- Use least-privilege credentials where supported.
 
-- You need a **Developer Account** at [developer.twitter.com](https://developer.x.com)
-- **Basic tier** ($100/month) allows 100 posts/month; **Free tier** has write limits
-- Generate keys under **Project → App → Keys and Tokens**
-- The agent uses **OAuth 1.0a User Context** for posting (the only allowed method for `POST /2/tweets`)
+## 🧪 CI
 
----
+GitHub Actions checks the Python project on pushes and pull requests targeting `main`.
 
-## Notes
+The workflow installs dependencies, compiles Python sources, and validates the configuration template.
 
-- GitHub Trending HTML is parsed carefully; structure occasionally changes — the scraper logs a warning if parsing fails.
-- All HTTP requests time out after `HTTP_TIMEOUT` seconds; failures are logged and skipped without crashing the scheduler.
+## 🗺️ Roadmap
+
+- [ ] More research sources
+- [ ] Better ranking and topic clustering
+- [ ] Configurable approval rules
+- [ ] Content analytics
+- [ ] More robust provider adapters
+- [ ] Containerized deployment
+- [ ] Automated integration tests
+
+## 📄 License
+
+See the repository for the current licensing information.
