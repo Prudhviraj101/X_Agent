@@ -74,7 +74,7 @@ class Config:
         "singularity", "AItools", "ChatGPT",
     ])
     http_timeout: int = 15
-    user_agent: str = "XAgentBot/1.0 (+https://github.com/your-username/x-agent)"
+    user_agent: str = "XAgentBot/1.0 (+https://github.com/Prudhviraj101/X_Agent)"
 
     # Paths (computed, not from env)
     project_root: Path = field(default_factory=lambda: Path(__file__).parent)
