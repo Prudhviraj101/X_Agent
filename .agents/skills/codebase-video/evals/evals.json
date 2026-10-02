@@ -1,0 +1,20 @@
+{
+  "skill_name": "codebase-video",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a 20‑second Remotion video walkthrough of my tiny project located at C:/demo/simple-app. It contains only index.js and a README.md. Show the file tree, a quick metrics summary, and a short intro with the project name.",
+      "expected_output": "MP4 video (around 20 s) rendered at 1920×1080 demonstrating file tree, metrics, and intro."
+    },
+    {
+      "id": 2,
+      "prompt": "Generate a 30‑second code‑walkthrough video for the repository at C:/projects/web‑portal. Include the README title, key entry file src/index.tsx, package.json dependency count, and a basic architecture diagram of src folders.",
+      "expected_output": "MP4 video (≈30 s) with intro, README excerpt, metrics, and architecture flow visualising src hierarchy."
+    },
+    {
+      "id": 3,
+      "prompt": "Render a 45‑second Remotion video summarising the large monorepo at C:/workspaces/enterprise‑app. Show file‑tree depth 3, total LOC per language, commit count, and a high‑level architecture diagram linking core services.",
+      "expected_output": "MP4 video (≈45 s) covering file tree, metrics, and architecture diagram for a large codebase."
+    }
+  ]
+}

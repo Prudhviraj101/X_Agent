@@ -1,0 +1,24 @@
+# Environment / secrets
+.env
+
+# Runtime data
+logs/
+drafts/
+dedup_store.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+queue.db
+tmp/

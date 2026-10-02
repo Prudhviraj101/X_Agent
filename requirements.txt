@@ -1,0 +1,25 @@
+# ── Core HTTP & parsing ───────────────────────────────────────────────────────
+httpx>=0.28.1
+requests>=2.34.2
+requests-oauthlib>=2.0.0
+beautifulsoup4>=4.14.3
+
+# ── Stealthy HTTP engine (Scrapling's curl_cffi) ──────────────────────────────
+# Used by Reddit and GitHub scrapers for Chrome TLS fingerprint impersonation.
+# Bypasses basic bot detection without requiring Playwright/browsers.
+curl_cffi>=0.15.0
+
+# ── LLM providers (install at least one) ─────────────────────────────────────
+openai>=2.0.0
+google-generativeai>=0.8.0
+
+# ── Environment / config ──────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Optional: Twitter scraping via Agent-Reach's twitter-cli backend ──────────
+# pip install twitter-cli
+# (Only needed if SCRAPE_TWITTER=true in .env — see .env.example for setup)
+
+# ── Optional: Reddit authenticated scraping via Agent-Reach's rdt-cli backend ─
+# pipx install "git+https://github.com/public-clis/rdt-cli.git"
+# (Only needed for best Reddit results — see .env.example for setup)
